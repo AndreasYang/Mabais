@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="mapper.StudentMapper">
+
+	<!-- resultMap 映射 当数据库表中查询的数据的列名与类里面定义的名字不一样时可以使用此方法 -->
+	<!-- <resultMap type="Student" id="studentMap">
+		<id property="id" column="s_id"/>
+		<result property="name" column="s_name"/>
+	</resultMap> -->
+
+	<select id="findByName" parameterType="java.lang.String" resultType="Student">
+		select * from student where name like '%${value}%'
+	</select>
+	
+	<select id="findById" parameterType="java.lang.Integer" resultType="Student">
+		select * from student where id=#{id}
+	</select>
+	
+	<select id="findAll" resultType="Student">
+		select * from student
+	</select>
+	
+	<delete id="deleteById" parameterType="java.lang.Integer">
+		delete from student where id=#{id}
+	</delete>
+	
+	<select id="findPage" parameterType="Map" resultType="Student">
+		select * from student limit #{index},#{pageSize}
+	</select>
+	
+	<select id="findCount" resultType="int">
+		select count(*) from student
+	</select>
+	
+	<select id="findByCondition" parameterType="Student" resultType="Student">
+		select * from student
+		<where>
+			<if test="name != null">
+				and name like '%${name}%'
+			</if>
+			<if test="age != null">
+				and age=#{age}
+			</if>
+			<if test="gender != null">
+				and gender=#{gender}
+			</if>
+		</where>
+	</select>
+	
+	<update id="dynaUpdate" parameterType="Student">
+		update student 
+		<set>
+			<if test="name != null">
+				name=#{name},
+			</if>
+			<if test="age != null">
+				age=#{age},
+			</if>
+			<if test="gender != null">
+				gender=#{gender},
+			</if>
+			<if test="address">
+				address=#{address},
+			</if>
+		</set>
+		where id=#{id}
+	</update>
+	
+	<select id="findByArray" resultType="Student">
+		select * from student where id in
+		<foreach collection="array" item="id" separator="," open="(" close=")">
+			#{id}
+		</foreach>
+	</select>
+	
+	<resultMap type="Student" id="studentInfosMap">
+		<id property="id" column="id"/>
+		<result property="number" column="number"/>
+		<result property="name" column="name"/>
+		<result property="age" column="age"/>
+		<result property="gender" column="gender"/>
+		<result property="address" column="address"/>
+		<association property="banji" javaType="Banji">
+			<id property="banjiId" column="banji_id"/>
+			<result property="classname" column="classname"/>
+		</association>
+	</resultMap>
+	<select id="findStudentInfos" resultMap="studentInfosMap">
+		SELECT s.id,s.name,s.age,s.gender,s.address,bj.id AS banji_id,bj.classname 
+		FROM student AS s INNER JOIN banji AS bj 
+		ON s.banji_id=bj.id;
+	</select>
+	
+	<resultMap type="Student" id="studentCourseInfosMap">
+		<id property="id" column="id"/>
+		<result property="number" column="number"/>
+		<result property="name" column="name"/>
+		<result property="age" column="age"/>
+		<result property="gender" column="gender"/>
+		<result property="address" column="address"/>
+		<association property="banji" javaType="Banji">
+			<result property="classname" column="classname"/>
+			<collection property="course" ofType="Course">
+				<result property="coursename" column="coursename"/>
+				<result property="points" column="points"/>
+			</collection>
+		</association>
+	</resultMap>
+	<select id="findStudentCourseInfos" resultMap="studentCourseInfosMap">
+		SELECT s.id,s.number,s.name,bj.classname,c.coursename,c.points 
+		FROM student AS s LEFT JOIN banji AS bj ON s.banji_id=bj.id 
+		LEFT JOIN banji_course AS bc ON bj.id=bc.banji_id 
+		LEFT JOIN course AS c ON bc.course_id=c.id;
+	</select>
+	
+</mapper>
+
